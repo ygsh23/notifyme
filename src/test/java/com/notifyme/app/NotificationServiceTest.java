@@ -32,10 +32,8 @@ public class NotificationServiceTest {
 
     @BeforeMethod
     public void setUp() {
-        // Initialize mocks and store the AutoCloseable reference
         mocks = MockitoAnnotations.openMocks(this);
 
-        // Manually inject the set of notifiers
         Set<Notifier> notifiers = new HashSet<>();
         notifiers.add(emailNotifier);
         notifiers.add(smsNotifier);
@@ -46,7 +44,6 @@ public class NotificationServiceTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
-        // Ensure mocks are closed after each test
         if (mocks != null) {
             mocks.close();
         }
@@ -56,15 +53,12 @@ public class NotificationServiceTest {
     public void testNotifyUser() {
         String message = "Test Notification";
 
-        // Call the method under test
         notificationService.notifyUser(message);
 
-        // Verify that each notifier was called once
         Mockito.verify(emailNotifier).send(message);
         Mockito.verify(smsNotifier).send(message);
         Mockito.verify(pushNotifier).send(message);
 
-        // Verify that logging happened for each notification
         Mockito.verify(loggerService, Mockito.times(3)).log(Mockito.anyString());
     }
 }

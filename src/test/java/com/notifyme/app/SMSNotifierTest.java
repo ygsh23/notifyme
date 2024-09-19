@@ -2,22 +2,20 @@ package com.notifyme.app;
 
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.twilio.rest.api.v2010.account.MessageCreator;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class SMSNotifierTest {
-
-    @Mock
-    private Logger logger;
-
-    @InjectMocks
-    private SMSNotifier smsNotifier;
 
     @BeforeMethod
     public void setUp() {
@@ -25,28 +23,57 @@ public class SMSNotifierTest {
     }
 
     @Test
-    public void testSendSMSSuccess() {
-        // Mock Twilio Message creation
+    public void testSendSMSSuccess() throws Exception {
         Message mockMessage = mock(Message.class);
         when(mockMessage.getSid()).thenReturn("SM123456789");
 
-        // Call the method to test
-        smsNotifier.send("Test SMS message");
+        MessageCreator mockMessageCreator = mock(MessageCreator.class);
+        when(mockMessageCreator.create()).thenReturn(mockMessage);
 
-        // Verify that the SMS was sent
-        verify(logger).info("SMS sent successfully: {}", "SM123456789");
+        try (var messageMock = mockStatic(Message.class)) {
+            messageMock.when(() -> Message.creator(any(PhoneNumber.class), any(PhoneNumber.class), anyString()))
+                    .thenReturn(mockMessageCreator);
+
+            DataSource dataSource = mock(DataSource.class);
+            Connection mockConnection = mock(Connection.class);
+            PreparedStatement mockPreparedStatement = mock(PreparedStatement.class);
+            SMSNotifier smsNotifier = new SMSNotifier(dataSource);
+
+            when(dataSource.getConnection()).thenReturn(mockConnection);
+            when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+
+            smsNotifier.send("Test SMS message");
+
+            verify(mockPreparedStatement).setString(1, "+91***********8");
+            verify(mockPreparedStatement).setString(2, "Test SMS message");
+            verify(mockPreparedStatement).setBoolean(3, true);
+            verify(mockPreparedStatement).executeUpdate();
+        }
     }
 
     @Test
-    public void testSendSMSFailure() {
-        // Mock exception
-        doThrow(new RuntimeException("Twilio Exception")).when(Message.class);
+    public void testSendSMSFailure() throws Exception {
+        MessageCreator mockMessageCreator = mock(MessageCreator.class);
 
-        // Call the method to test
-        smsNotifier.send("Test SMS message");
+        try (var messageMock = mockStatic(Message.class)) {
+            messageMock.when(() -> Message.creator(any(PhoneNumber.class), any(PhoneNumber.class), anyString()))
+                    .thenReturn(mockMessageCreator);
 
-        // Verify error logging
-        verify(logger).error(anyString(), any(Throwable.class));
+            DataSource dataSource = mock(DataSource.class);
+            Connection mockConnection = mock(Connection.class);
+            PreparedStatement mockPreparedStatement = mock(PreparedStatement.class);
+            SMSNotifier smsNotifier = new SMSNotifier(dataSource);
+
+            when(dataSource.getConnection()).thenReturn(mockConnection);
+            when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+
+            smsNotifier.send("Test SMS message");
+
+            verify(mockPreparedStatement).setString(1, "+91***********8");
+            verify(mockPreparedStatement).setString(2, "Test SMS message");
+            verify(mockPreparedStatement).setBoolean(3, false);
+            verify(mockPreparedStatement).executeUpdate();
+        }
     }
 }
 

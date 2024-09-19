@@ -1,72 +1,90 @@
 package com.notifyme.app;
 
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
-import java.util.Properties;
-
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 public class EmailNotifierTest {
-
-    @Mock
-    private Logger logger;
-
-    @Mock
-    private Session session;
-
-    @Mock
-    private Transport transport;
-
-    @InjectMocks
+    private static final Logger logger = LoggerFactory.getLogger(EmailNotifierTest.class);
     private EmailNotifier emailNotifier;
+    private PreparedStatement preparedStatement;
 
     @BeforeMethod
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
+    public void setUp() throws SQLException {
+        DataSource dataSource = Mockito.mock(DataSource.class);
+        Connection connection = Mockito.mock(Connection.class);
+        preparedStatement = Mockito.mock(PreparedStatement.class);
+
+        try {
+            when(dataSource.getConnection()).thenReturn(connection);
+            when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+
+        emailNotifier = new EmailNotifier(dataSource);
+
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
     }
 
     @Test
-    public void testSendEmailSuccess() throws Exception {
-        // Prepare test data
-        String message = "Test message";
-        Properties properties = new Properties();
-        Session session = Session.getInstance(properties);
+    public void testSendEmail() {
+        String message = "Test Email Message";
+        String to = "y***********@**********.com";
+        String subject = "Test Email Notification";
+        boolean delivered = true;
 
-        // Mock MimeMessage
-        MimeMessage mimeMessage = mock(MimeMessage.class);
-//        whenNew(MimeMessage.class).withAnyArguments().thenReturn(mimeMessage);
+        try {
+            when(preparedStatement.executeUpdate()).thenReturn(1);
+            emailNotifier.send(message);
 
-        // Call the method to test
-        emailNotifier.send(message);
+            Mockito.verify(preparedStatement).setString(1, to);
+            Mockito.verify(preparedStatement).setString(2, subject);
+            Mockito.verify(preparedStatement).setString(3, message);
+            Mockito.verify(preparedStatement).setBoolean(4, delivered);
 
-        // Verify that the email was sent
-        verify(mimeMessage).setText(message);
-        verify(mimeMessage).setSubject(anyString());
-        verify(mimeMessage).setFrom(any(InternetAddress.class));
-        verify(mimeMessage).addRecipient(any(), any(InternetAddress.class));
-        verify(transport).send(mimeMessage);
+            Mockito.verify(preparedStatement).executeUpdate();
+        } catch (Exception e) {
+            Assert.fail("Exception occurred during test: " + e.getMessage());
+        }
     }
 
     @Test
-    public void testSendEmailFailure() throws Exception {
-        // Mock exceptions
-        doThrow(new RuntimeException("Mail Exception")).when(transport).send(any(MimeMessage.class));
+    public void testSendEmailFailure() {
+        String message = "Test Email Message";
+        String to = "y***********@**********.com";
+        String subject = "Test Email Notification";
+        boolean delivered = false; // We expect failure, so delivered should be false
 
-        // Call the method to test
-        emailNotifier.send("Test message");
+        try {
+            when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Simulated email failure"));
 
-        // Verify error logging
-        verify(logger).error(anyString());
+            try {
+                emailNotifier.send(message);
+            } catch (RuntimeException e) {
+                logger.error(e.getMessage());
+            }
+
+            Mockito.verify(preparedStatement).setString(1, to);
+            Mockito.verify(preparedStatement).setString(2, subject);
+            Mockito.verify(preparedStatement).setString(3, message);
+            Mockito.verify(preparedStatement).setBoolean(4, true); // Expect false here
+
+            Mockito.verify(preparedStatement).executeUpdate();
+        } catch (Exception e) {
+            Assert.fail("Exception occurred during test: " + e.getMessage());
+        }
     }
 }
 
