@@ -44,7 +44,7 @@ public class SMSNotifierTest {
 
             smsNotifier.send("Test SMS message");
 
-            verify(mockPreparedStatement).setString(1, "+91***********8");
+            verify(mockPreparedStatement).setString(1, "+917973467958");
             verify(mockPreparedStatement).setString(2, "Test SMS message");
             verify(mockPreparedStatement).setBoolean(3, true);
             verify(mockPreparedStatement).executeUpdate();
@@ -69,7 +69,7 @@ public class SMSNotifierTest {
 
             smsNotifier.send("Test SMS message");
 
-            verify(mockPreparedStatement).setString(1, "+91***********8");
+            verify(mockPreparedStatement).setString(1, "+917973467958");
             verify(mockPreparedStatement).setString(2, "Test SMS message");
             verify(mockPreparedStatement).setBoolean(3, false);
             verify(mockPreparedStatement).executeUpdate();

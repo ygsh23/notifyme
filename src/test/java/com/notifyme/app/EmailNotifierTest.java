@@ -41,7 +41,7 @@ public class EmailNotifierTest {
     @Test
     public void testSendEmail() {
         String message = "Test Email Message";
-        String to = "y***********@**********.com";
+        String to = "yogeshh023@protonmail.com";
         String subject = "Test Email Notification";
         boolean delivered = true;
 
@@ -63,7 +63,7 @@ public class EmailNotifierTest {
     @Test
     public void testSendEmailFailure() {
         String message = "Test Email Message";
-        String to = "y***********@**********.com";
+        String to = "yogeshh023@protonmail.com";
         String subject = "Test Email Notification";
         boolean delivered = false; // We expect failure, so delivered should be false
 

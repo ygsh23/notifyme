@@ -24,8 +24,8 @@ class EmailNotifier implements Notifier {
 
     @Override
     public void send(String message) {
-        String to = "y***********@**********.com";
-        String from = "y***********@*******.com";
+        String to = "yogeshh023@protonmail.com";
+        String from = "yogeshh023@outlook.com";
         String host = "smtp.office365.com";
         String port = "587";
 
@@ -41,7 +41,7 @@ class EmailNotifier implements Notifier {
         Session session = Session.getInstance(properties, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("y***********@*******.com", "*********");
+                return new PasswordAuthentication("yogeshh023@outlook.com", "Good43!!");
             }
         });
 

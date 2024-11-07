@@ -14,8 +14,8 @@ import java.sql.PreparedStatement;
 class SMSNotifier implements Notifier {
 
     private static final Logger logger = LoggerFactory.getLogger(SMSNotifier.class);
-    public static final String ACCOUNT_SID = "AC26******************************e246";
-    public static final String AUTH_TOKEN = "f201*****************************78c";
+    public static final String ACCOUNT_SID = "";
+    public static final String AUTH_TOKEN = "";
     private final DataSource dataSource;
 
     @Inject
@@ -25,14 +25,14 @@ class SMSNotifier implements Notifier {
 
     @Override
     public void send(String message) {
-        String phoneTo = "+91***********8";
+        String phoneTo = "+917973467958";
         boolean delivered = false;
 
         try {
             Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
 
-            Message sms = Message.creator(new PhoneNumber(phoneTo),
-                    new PhoneNumber("+1***********5"),
+            Message sms = Message.creator(new PhoneNumber(phoneTo),  // Replace with recipient phone number
+                    new PhoneNumber("+18317039465"),  // Replace with your Twilio phone number
                     message).create();
 
             logger.info("SMS sent successfully: {}", sms.getSid());

@@ -22,9 +22,6 @@ public class NotificationServiceTest {
     @Mock
     private SMSNotifier smsNotifier;
 
-    @Mock
-    private PushNotifier pushNotifier;
-
     @InjectMocks
     private NotificationService notificationService;
 
@@ -37,7 +34,6 @@ public class NotificationServiceTest {
         Set<Notifier> notifiers = new HashSet<>();
         notifiers.add(emailNotifier);
         notifiers.add(smsNotifier);
-        notifiers.add(pushNotifier);
 
         notificationService = new NotificationService(notifiers, loggerService);
     }
@@ -57,7 +53,6 @@ public class NotificationServiceTest {
 
         Mockito.verify(emailNotifier).send(message);
         Mockito.verify(smsNotifier).send(message);
-        Mockito.verify(pushNotifier).send(message);
 
         Mockito.verify(loggerService, Mockito.times(3)).log(Mockito.anyString());
     }
